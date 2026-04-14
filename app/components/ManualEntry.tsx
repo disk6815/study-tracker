@@ -8,9 +8,10 @@ type Subject = { id: number; name: string; color: string };
 type Props = {
   subjects: Subject[];
   onSave: () => void;
+  userId: number;
 };
 
-export default function ManualEntry({ subjects, onSave }: Props) {
+export default function ManualEntry({ subjects, onSave, userId }: Props) {
   const today = format(new Date(), "yyyy-MM-dd");
   const [subjectId, setSubjectId] = useState<number | "">("");
   const [date, setDate] = useState(today);
@@ -46,6 +47,7 @@ export default function ManualEntry({ subjects, onSave }: Props) {
           subjectId,
           date: new Date(date).toISOString(),
           duration: totalSeconds,
+          userId,
           note: note || null,
         }),
       });

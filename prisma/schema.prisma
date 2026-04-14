@@ -10,12 +10,23 @@ datasource db {
   provider = "sqlite"
 }
 
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  subjects  Subject[]
+}
+
 model Subject {
   id        Int            @id @default(autoincrement())
-  name      String         @unique
+  name      String
   color     String         @default("#3B82F6")
   createdAt DateTime       @default(now())
+  userId    Int
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   sessions  StudySession[]
+
+  @@unique([name, userId])
 }
 
 model StudySession {

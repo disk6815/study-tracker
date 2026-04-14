@@ -12,9 +12,10 @@ const COLORS = [
 type Props = {
   subjects: Subject[];
   onUpdate: () => void;
+  userId: number;
 };
 
-export default function SubjectManager({ subjects, onUpdate }: Props) {
+export default function SubjectManager({ subjects, onUpdate, userId }: Props) {
   const [name, setName] = useState("");
   const [color, setColor] = useState(COLORS[0]);
   const [error, setError] = useState("");
@@ -32,7 +33,7 @@ export default function SubjectManager({ subjects, onUpdate }: Props) {
       const res = await fetch("/api/subjects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), color }),
+        body: JSON.stringify({ name: name.trim(), color, userId }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -49,7 +50,7 @@ export default function SubjectManager({ subjects, onUpdate }: Props) {
 
   const handleDelete = async (id: number) => {
     if (!confirm("この科目を削除しますか？関連する記録も削除されます。")) return;
-    await fetch(`/api/subjects/${id}`, { method: "DELETE" });
+    await fetch(`/api/subjects/${id}?userId=${userId}`, { method: "DELETE" });
     onUpdate();
   };
 

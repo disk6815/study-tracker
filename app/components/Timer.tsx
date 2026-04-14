@@ -7,6 +7,7 @@ type Subject = { id: number; name: string; color: string };
 type Props = {
   subjects: Subject[];
   onSave: () => void;
+  userId: number;
 };
 
 function formatTime(seconds: number): string {
@@ -16,7 +17,7 @@ function formatTime(seconds: number): string {
   return [h, m, s].map((v) => String(v).padStart(2, "0")).join(":");
 }
 
-export default function Timer({ subjects, onSave }: Props) {
+export default function Timer({ subjects, onSave, userId }: Props) {
   const [selectedSubjectId, setSelectedSubjectId] = useState<number | "">("");
   const [note, setNote] = useState("");
   const [running, setRunning] = useState(false);
@@ -70,6 +71,7 @@ export default function Timer({ subjects, onSave }: Props) {
           date: new Date().toISOString(),
           duration: elapsed,
           note: note || null,
+          userId,
         }),
       });
       if (!res.ok) throw new Error("保存に失敗しました");

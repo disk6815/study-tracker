@@ -16,6 +16,7 @@ type Session = {
 type Props = {
   sessions: Session[];
   onDelete: () => void;
+  userId: number;
 };
 
 function formatDuration(seconds: number): string {
@@ -27,13 +28,13 @@ function formatDuration(seconds: number): string {
   return `${s}秒`;
 }
 
-export default function History({ sessions, onDelete }: Props) {
+export default function History({ sessions, onDelete, userId }: Props) {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const handleDelete = async (id: number) => {
     if (!confirm("この記録を削除しますか？")) return;
     setDeletingId(id);
-    await fetch(`/api/sessions/${id}`, { method: "DELETE" });
+    await fetch(`/api/sessions/${id}?userId=${userId}`, { method: "DELETE" });
     setDeletingId(null);
     onDelete();
   };
