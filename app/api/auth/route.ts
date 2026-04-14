@@ -1,17 +1,29 @@
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
-// 名前でユーザーを検索または作成
 export async function POST(request: Request) {
-  const { name } = await request.json();
-  if (!name || typeof name !== "string" || !name.trim()) {
-    return Response.json({ error: "名前を入力してください" }, { status: 400 });
+  const { name, password } = await request.json();
+
+  if (!name?.trim() || !password?.trim()) {
+    return Response.json({ error: "名前とパスワードを入力してください" }, { status: 400 });
   }
 
-  const user = await prisma.user.upsert({
-    where: { name: name.trim() },
-    update: {},
-    create: { name: name.trim() },
-  });
+  const trimmedName = name.trim();
+  const existingUser = await prisma.user.findUnique({ where: { name: trimmedName } });
 
-  return Response.json(user);
+  if (existingUser) {
+    // ログイン：パスワードを確認
+    const isValid = await bcrypt.compare(password, existingUser.password);
+    if (!isValid) {
+      return Response.json({ error: "パスワードが違います" }, { status: 401 });
+    }
+    return Response.json({ id: existingUser.id, name: existingUser.name });
+  } else {
+    // 新規登録：パスワードをハッシュ化して保存
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await prisma.user.create({
+      data: { name: trimmedName, password: hashedPassword },
+    });
+    return Response.json({ id: user.id, name: user.name }, { status: 201 });
+  }
 }

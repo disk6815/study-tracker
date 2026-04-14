@@ -24,7 +24,7 @@ if (!url || !authToken) {
 const client = createClient({ url, authToken });
 
 const sql = readFileSync(
-  resolve(__dirname, "../prisma/migrations/20260414123031_add_user_model/migration.sql"),
+  resolve(__dirname, "../prisma/migrations/20260414125222_add_password_to_user/migration.sql"),
   "utf-8"
 );
 
