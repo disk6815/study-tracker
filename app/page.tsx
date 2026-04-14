@@ -1,65 +1,102 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import Timer from "./components/Timer";
+import ManualEntry from "./components/ManualEntry";
+import History from "./components/History";
+import Stats from "./components/Stats";
+import SubjectManager from "./components/SubjectManager";
+
+type Subject = { id: number; name: string; color: string };
+type Session = {
+  id: number;
+  date: string;
+  duration: number;
+  note: string | null;
+  subject: Subject;
+};
+
+type Tab = "timer" | "manual" | "history" | "stats" | "subjects";
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: "timer", label: "タイマー" },
+  { id: "manual", label: "手動入力" },
+  { id: "history", label: "履歴" },
+  { id: "stats", label: "統計" },
+  { id: "subjects", label: "科目管理" },
+];
 
 export default function Home() {
+  const [tab, setTab] = useState<Tab>("timer");
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
+
+  const fetchSubjects = useCallback(async () => {
+    const res = await fetch("/api/subjects");
+    const data = await res.json();
+    setSubjects(data);
+  }, []);
+
+  const fetchSessions = useCallback(async () => {
+    const res = await fetch("/api/sessions");
+    const data = await res.json();
+    setSessions(data);
+  }, []);
+
+  useEffect(() => {
+    fetchSubjects();
+    fetchSessions();
+  }, [fetchSubjects, fetchSessions]);
+
+  const handleDataUpdate = () => {
+    fetchSessions();
+  };
+
+  const handleSubjectUpdate = () => {
+    fetchSubjects();
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-gray-100">
+      <header className="bg-white shadow-sm sticky top-0 z-10">
+        <div className="max-w-2xl mx-auto px-4 py-4">
+          <h1 className="text-2xl font-bold text-gray-900">学習記録</h1>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      <div className="max-w-2xl mx-auto px-4 py-4">
+        {/* タブナビゲーション */}
+        <div className="flex gap-1 bg-white rounded-xl shadow p-1 mb-6 overflow-x-auto">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition whitespace-nowrap ${
+                tab === t.id
+                  ? "bg-blue-600 text-white shadow"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
-      </main>
+
+        {/* コンテンツ */}
+        {tab === "timer" && (
+          <Timer subjects={subjects} onSave={handleDataUpdate} />
+        )}
+        {tab === "manual" && (
+          <ManualEntry subjects={subjects} onSave={handleDataUpdate} />
+        )}
+        {tab === "history" && (
+          <History sessions={sessions} onDelete={handleDataUpdate} />
+        )}
+        {tab === "stats" && <Stats sessions={sessions} />}
+        {tab === "subjects" && (
+          <SubjectManager subjects={subjects} onUpdate={handleSubjectUpdate} />
+        )}
+      </div>
     </div>
   );
 }

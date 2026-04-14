@@ -1,0 +1,29 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Subject {
+  id        Int            @id @default(autoincrement())
+  name      String         @unique
+  color     String         @default("#3B82F6")
+  createdAt DateTime       @default(now())
+  sessions  StudySession[]
+}
+
+model StudySession {
+  id        Int      @id @default(autoincrement())
+  subjectId Int
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  date      DateTime
+  duration  Int
+  note      String?
+  createdAt DateTime @default(now())
+}
